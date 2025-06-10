@@ -24,7 +24,12 @@
 - `/상태확인` – 현재 서버 설정(기준일, 관리자, 제외 대상) 확인
 - `/초기화` – 서버 설정 초기화
 
+
+## Bot 권한
+- Admin
 ---
+
+# Developer Only
 
 ## ⚙ 서버 설치 및 실행 방법
 
@@ -65,7 +70,7 @@ airpodsCat/
 └── README.md              # 이 문서
 ```
 
-## Bot Permission
+## 봇 최소 권한
 - View Channels
 - Send Messages
 - Connect (음성 채널 접속 확인용)
