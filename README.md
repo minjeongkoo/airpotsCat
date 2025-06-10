@@ -47,7 +47,7 @@ CLIENT_ID=your_discord_application_id
 ```
 - CLIENT_ID는 Discord Developer Portal의 Application ID입니다.
 
-### 3. .env 파일 생성
+### 3. 슬래시 명령어 등록
 ```bash
 node deploy-commands.js
 ```
