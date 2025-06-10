@@ -70,7 +70,7 @@ module.exports = {
         else if (commandName === '관리자목록') {
             const ids = await getAdmins(guildId);
             const mentions = ids.map(id => `<@${id}>`).join(', ') || '없음';
-            await interaction.reply(`📢 등록된 관리자:\n${mentions}`);
+            await interaction.reply(`등록된 관리자:\n${mentions}`);
         }
 
         else if (commandName === '제외') {
@@ -82,7 +82,7 @@ module.exports = {
         else if (commandName === '제외목록') {
             const ids = await getExcluded(guildId);
             const mentions = ids.map(id => `<@${id}>`).join(', ') || '없음';
-            await interaction.reply(`🚫 제외된 유저 목록:\n${mentions}`);
+            await interaction.reply(`제외된 유저 목록:\n${mentions}`);
         }
 
         else if (commandName === '상태확인') {
