@@ -5,6 +5,11 @@
 
 > 서버 운영자가 장기 미참여자를 파악하거나, 비활성 멤버를 관리하는 데 도움을 줍니다.
 
+## 디코 설정
+- 관리자로 등록하신 분은 Discord > 설정 > 콘텐츠 및 소셜 > 소셜 권한 > "해당 서버"의 [다이렉트 메시지: True]
+- 위 설정을 켜주셔야 DM을 받으실 수 있어요.
+- 매일 아침 7시에 자동 알림이 있습니다.
+
 ---
 
 ## 기능 요약
@@ -19,7 +24,12 @@
 - `/상태확인` – 현재 서버 설정(기준일, 관리자, 제외 대상) 확인
 - `/초기화` – 서버 설정 초기화
 
+
+## Bot 권한
+- Admin
 ---
+
+# Developer Only
 
 ## ⚙ 서버 설치 및 실행 방법
 
@@ -37,7 +47,7 @@ CLIENT_ID=your_discord_application_id
 ```
 - CLIENT_ID는 Discord Developer Portal의 Application ID입니다.
 
-### 3. .env 파일 생성
+### 3. 슬래시 명령어 등록
 ```bash
 node deploy-commands.js
 ```
@@ -60,7 +70,7 @@ airpodsCat/
 └── README.md              # 이 문서
 ```
 
-## Bot Permission
+## 봇 최소 권한
 - View Channels
 - Send Messages
 - Connect (음성 채널 접속 확인용)
