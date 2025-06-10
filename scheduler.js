@@ -1,49 +1,28 @@
 // scheduler.js
 const cron = require('node-cron');
-const {
-  getConfig,
-  getVoiceLogs,
-  getAdmins,
-  getExcluded
-} = require('./db');
+const runScheduler = require('./scheduler-core');
+const { Client, GatewayIntentBits } = require('discord.js');
+require('dotenv').config();
 
-function calculateDaysAgo(dateString) {
-  const lastDate = new Date(dateString);
-  const now = new Date();
-  const diffTime = now - lastDate;
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildVoiceStates,
+  ],
+});
 
-module.exports = function scheduleCheck(client) {
-  cron.schedule('0 10 * * *', () => {  // 매일 오전 10시
-    console.log('⏰ 비활성 유저 검사 시작');
+client.once('ready', () => {
+  console.log(`Scheduler bot ready as ${client.user.tag}`);
 
-    getConfig('inactive_days', (err, value) => {
-      const inactiveDays = parseInt(value || '60', 10);
-
-      getVoiceLogs((err, logs) => {
-        getAdmins((err, admins) => {
-          getExcluded((err, excluded) => {
-            logs.forEach(user => {
-              if (excluded.includes(user.user_id)) return;
-
-              const daysAgo = calculateDaysAgo(user.last_join);
-              if (daysAgo >= inactiveDays) {
-                admins.forEach(async adminId => {
-                  try {
-                    const admin = await client.users.fetch(adminId);
-                    const guild = client.guilds.cache.first();  // 단일 서버 기준
-                    const message = `📢 <@${user.user_id}> 님은 ${guild.name} 서버에서 음성채널에 ${daysAgo}일간 참여하지 않았습니다 x_x`;
-                    admin.send(message);
-                  } catch (err) {
-                    console.error(`❌ 관리자 ${adminId} DM 전송 실패`, err);
-                  }
-                });
-              }
-            });
-          });
-        });
-      });
-    });
+  // 매일 오후 5시 30분에 실행 (서버 시간 기준)
+  cron.schedule('30 17 * * *', () => {
+    console.log(`[Scheduler] Running at 17:30`);
+    runScheduler(client);
   });
-};
+
+  // 봇 시작 시 한 번 테스트 실행 (선택사항)
+  runScheduler(client);
+});
+
+client.login(process.env.DISCORD_TOKEN);
