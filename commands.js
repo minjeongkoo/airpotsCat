@@ -78,6 +78,10 @@ const commands = [
         .addUserOption(opt =>
             opt.setName('유저').setDescription('알림을 그만 받을 유저의 이름').setRequired(true)),
 
+    new SlashCommandBuilder()
+        .setName('help')
+        .setDescription('기본 설정 및 사용법을 안내합니다.')
+
 
 ].map(cmd => cmd.toJSON());
 
@@ -125,8 +129,36 @@ module.exports = {
             });
         }
 
+        if (commandName === 'help') {
+            await interaction.reply({
+                content: `1️⃣ **/reset-server** \n
+- 서버 데이터를 초기화합니다.
+- 봇 사용 전에 반드시 한 번 실행하세요.
+\n
+2️⃣ **/status** \n
+- 현재 유저의 음성 채널 참여 기록을 확인합니다.  
+- 초기화 직후엔 '없음'으로 표시됩니다.
+\n
+3️⃣ **/참여기준 [수치] [단위]** \n
+- 비활성 유저로 간주할 기준을 설정합니다.  
+- 예: \`/참여기준 10 일\` → 10일 이상 미참여 시 비활성 처리
+\n
+4️⃣ **/알림필요 @user** \n
+- 비활성 유저 알림을 받을 관리자를 등록합니다.  
+- 알림은 매일 **오후 10시**에 DM으로 발송됩니다.
+\n
+5️⃣ **/제외 @user** \n
+- 특정 유저를 비활성 유저 대상에서 제외합니다.  
+- 예: 봇 계정, 관리자 계정 등
+\n
+ℹ️ 추가 문의는 개발자에게!
+- rekenzo#3030
+    `,
+                flags: 64,
+            });
+        }
 
-        if (commandName === '참여기준') {
+        else if (commandName === '참여기준') {
             const value = interaction.options.getInteger('수치');
             const unit = interaction.options.getString('단위');
 
@@ -161,7 +193,7 @@ module.exports = {
             const user = interaction.options.getUser('유저');
             await excludeUser(guildId, user.id);
             await interaction.reply({
-                content: `제외 목록에 등록 완료 : @${user.id}`,
+                content: `제외 목록에 등록 완료 : @${user.displayName}`,
                 flags: 64
             });
         }
