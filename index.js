@@ -1,9 +1,11 @@
 // index.js
 const { Client, GatewayIntentBits, Events } = require('discord.js');
-require('dotenv').config();
-const commandModule = require('./commands');
 const { initGuildInDatabase } = require('./db');
+const commandModule = require('./commands');
 
+require('dotenv').config();
+
+// Database
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./database.sqlite');
 
@@ -16,12 +18,12 @@ const client = new Client({
 });
 
 client.once(Events.ClientReady, () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+  console.log(`Logged in as ${client.user.tag}`);
 });
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
-  await commandModule.execute(interaction);
+  await commandModule.execute(interaction, client);
 });
 
 client.login(process.env.BOT_TOKEN);
@@ -53,7 +55,7 @@ client.on('guildCreate', async guild => {
   const members = await guild.members.fetch();
   const now = new Date().toISOString();
 
-  console.log(`✅ 새 서버에 추가됨: ${guild.name}`);
+  console.log(`--- 새 서버에 추가됨: ${guild.name} ---`);
   await initGuildInDatabase(guild.id);
 
   for (const member of members.values()) {
@@ -79,3 +81,11 @@ client.on('guildMemberAdd', member => {
 
   console.log(`[${member.guild.id}] ${member.user.username} 새 유저 등록`);
 });
+
+// client.on('messageCreate', message => {
+//   console.log(message.channel.type, message.author.bot);
+//   if (message.channel.type === 1 && !message.author.bot) {
+//     // type 1 : DM 채널
+//     message.reply('안녕하세요. 이 봇은 DM으로 동작하지 않습니다.\n서버 내에서 명령어를 사용해주세요. :1381821353325236284:');
+//   }
+// });

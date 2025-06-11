@@ -41,7 +41,7 @@ module.exports = async function runScheduler(client, targetAdminId = null, isMan
     const notifyAdmins = targetAdminId ? [targetAdminId] : admins;
 
     if (inactiveUsers.length === 0) {
-      const message = `${nowTime} 기준 **${serverName}** 서버에는 비활성 유저가 없어요 :D`;
+      const message = `${nowTime} 기준 **${serverName}** 서버에는 비활성 유저가 없어요`;
 
       if (isManual && targetAdminId) {
         // 수동 호출일 때만 메시지 전송
@@ -53,7 +53,7 @@ module.exports = async function runScheduler(client, targetAdminId = null, isMan
         }
       } else {
         // 스케줄러 실행 시엔 콘솔 출력만
-        console.log(`[${serverName}] 비활성 유저 없음 → DM 생략됨`);
+        console.info(`[${serverName}] 비활성 유저 없음 → DM 생략됨`);
       }
 
       continue;
@@ -62,8 +62,9 @@ module.exports = async function runScheduler(client, targetAdminId = null, isMan
     // 비활성 유저가 있을 경우
     const mentions = inactiveUsers.map(uid => `<@${uid}>`).join(', ');
     const message =
-      `📢 총 ${inactiveUsers.length}명의 유저가 ${threshold}${unit === 'days' ? '일' : '시간'}간 ` +
+      `📢 총 ${inactiveUsers.length}명의 유저가 ${threshold}${unit === 'days' ? '일' : '시간'}동안 ` +
       `**${serverName}** 서버의 음성채널에 참여하지 않았습니다 x_x\n\n` +
+
       `${mentions}`;
 
     for (const adminId of notifyAdmins) {

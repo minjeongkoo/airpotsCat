@@ -1,12 +1,18 @@
+// commands.js
 const { SlashCommandBuilder } = require('discord.js');
 const runScheduler = require('./scheduler-core');
 const { getAllVoiceLogs } = require('./db');
 
 const {
-    setConfig, getConfig,
-    addAdmin, getAdmins,
-    excludeUser, getExcluded,
-    resetGuildData
+    setConfig,
+    getConfig,
+    addAdmin,
+    getAdmins,
+    excludeUser,
+    getExcluded,
+    resetGuildData,
+    removeAdmin,
+    removeExcludedUser
 } = require('./db');
 
 const commands = [
@@ -25,14 +31,14 @@ const commands = [
                 )),
 
     new SlashCommandBuilder()
-        .setName('관리자')
-        .setDescription('알림 받을 관리자 등록')
+        .setName('알림필요')
+        .setDescription('알림 받을분 등록')
         .addUserOption(opt =>
-            opt.setName('유저').setDescription('등록할 관리자').setRequired(true)),
+            opt.setName('유저').setDescription('(관리자 권한을 가진 유저여야 합니다)').setRequired(true)),
 
     new SlashCommandBuilder()
-        .setName('관리자목록')
-        .setDescription('등록된 관리자 목록 보기'),
+        .setName('알림이용중')
+        .setDescription('등록된 알림 수신자 목록 보기'),
 
     new SlashCommandBuilder()
         .setName('제외')
@@ -45,26 +51,32 @@ const commands = [
         .setDescription('제외된 유저 목록 보기'),
 
     new SlashCommandBuilder()
-        .setName('상태확인')
+        .setName('status')
         .setDescription('현재 서버 설정 상태를 확인합니다.'),
 
     new SlashCommandBuilder()
-        .setName('초기화')
+        .setName('reset_server')
         .setDescription('현재 서버 설정을 초기화합니다. (주의!)'),
 
     new SlashCommandBuilder()
-        .setName('비활성확인')
-        .setDescription('지금 즉시 비활성 유저를 검사하고 관리자에게 알림을 보냅니다.'),
+        .setName('확인')
+        .setDescription('(수동) 비활성 유저를 검사하고 알림 수신자에게 알림을 보냅니다.'),
 
     new SlashCommandBuilder()
-        .setName('상세로그')
-        .setDescription('서버 멤버의 마지막 음성채널 참여 기록을 확인합니다.'),
+        .setName('voice_chat_logs')
+        .setDescription('서버 멤버들의 마지막 음성채널 참여 기록이 보여집니다.'),
 
     new SlashCommandBuilder()
         .setName('제외삭제')
         .setDescription('제외 목록에서 유저를 제거')
         .addUserOption(opt =>
             opt.setName('유저').setDescription('제외 해제할 유저').setRequired(true)),
+
+    new SlashCommandBuilder()
+        .setName('알림제거')
+        .setDescription('알림 이용자 제거')
+        .addUserOption(opt =>
+            opt.setName('유저').setDescription('알림을 그만 받을 유저의 이름').setRequired(true)),
 
 
 ].map(cmd => cmd.toJSON());
@@ -95,21 +107,21 @@ function formatDateKorean(dateStr) {
 
 module.exports = {
     commands,
-    async execute(interaction) {
+    async execute(interaction, client) {
         const { commandName, guildId } = interaction;
 
         const isAdmin = interaction.memberPermissions?.has('Administrator');
         if (!isAdmin) {
             return await interaction.reply({
                 content: '이 명령어는 관리자만 사용할 수 있습니다',
-                ephemeral: true
+                flags: 64
             });
         }
 
         if (!interaction.guild) {
             return await interaction.reply({
                 content: '죄송합니다. 해당 서버 정보가 유효하지 않습니다. 봇 관리자에게 문의 바랍니다. rekenzo#3030',
-                ephemeral: true
+                flags: 64
             });
         }
 
@@ -121,34 +133,49 @@ module.exports = {
             await setConfig(guildId, 'inactive_threshold', value.toString());
             await setConfig(guildId, 'inactive_unit', unit); // 'days' 또는 'hours'
 
-            await interaction.reply(`비활성 기준을 ${value}${unit === 'days' ? '일' : '시간'}로 설정했습니다.`);
+            await interaction.reply({
+                content: `비활성 기준을 ${value}${unit === 'days' ? '일' : '시간'}로 설정했습니다.`,
+                flags: 64,
+            });
         }
 
-        else if (commandName === '관리자') {
+        else if (commandName === '알림필요') {
             const user = interaction.options.getUser('유저');
             await addAdmin(guildId, user.id);
-            await interaction.reply(`<@${user.id}> 를 알림 관리자에 등록했습니다.`);
+            await interaction.reply({
+                content: `<@${user.id}>를 알림 받으실 분으로 등록했습니다.`,
+                flags: 64,
+            });
         }
 
-        else if (commandName === '관리자목록') {
+        else if (commandName === '알림이용중') {
             const ids = await getAdmins(guildId);
             const mentions = ids.map(id => `<@${id}>`).join(', ') || '없음';
-            await interaction.reply(`등록된 관리자:\n${mentions}`);
+            await interaction.reply({
+                content: `알림 이용중: \n${mentions}`,
+                flags: 64
+            });
         }
 
         else if (commandName === '제외') {
             const user = interaction.options.getUser('유저');
             await excludeUser(guildId, user.id);
-            await interaction.reply(`<@${user.id}> 는 비활성 감지 대상에서 제외되었습니다.`);
+            await interaction.reply({
+                content: `제외 목록에 등록 완료 : @${user.id}`,
+                flags: 64
+            });
         }
 
         else if (commandName === '제외목록') {
             const ids = await getExcluded(guildId);
             const mentions = ids.map(id => `<@${id}>`).join(', ') || '없음';
-            await interaction.reply(`제외된 유저 목록:\n${mentions}`);
+            await interaction.reply({
+                content: `제외된 유저 목록:\n${mentions}`,
+                flags: 64
+            });
         }
 
-        else if (commandName === '상태확인') {
+        else if (commandName === 'status') {
             const threshold = await getConfig(guildId, 'inactive_threshold');
             const unit = await getConfig(guildId, 'inactive_unit');
             const admins = await getAdmins(guildId);
@@ -157,15 +184,17 @@ module.exports = {
             const adminMentions = admins.map(id => `<@${id}>`).join(', ') || '없음';
             const excludedMentions = excluded.map(id => `<@${id}>`).join(', ') || '없음';
 
-            await interaction.reply(
-                `**${interaction.guild.name} 서버 상태**\n` +
-                `- 기준: ${threshold || '설정되지 않음'} ${unit === 'hours' ? '시간' : '일'}\n` +
-                `- 관리자: ${adminMentions}\n` +
-                `- 제외 대상: ${excludedMentions}`
-            );
+            await interaction.reply({
+                content:
+                    `**${interaction.guild.name} 서버 상태** <:AirpotCat_pink:1382184614910623855>\n` +
+                    `- 기준: ${threshold || '설정되지 않음'} ${unit === 'hours' ? '시간' : '일'}\n` +
+                    `- 관리자: ${adminMentions}\n` +
+                    `- 제외 대상: ${excludedMentions}`,
+                flags: 64,
+            });
         }
 
-        else if (commandName === '초기화') {
+        else if (commandName === 'reset_server') {
             await resetGuildData(guildId);
 
             const guild = await interaction.client.guilds.fetch(guildId);
@@ -173,19 +202,28 @@ module.exports = {
             const { initGuildInDatabase } = require('./db');
             initGuildInDatabase(guild); // voice_logs에 전체 멤버 등록
 
-            await interaction.reply('⚠️ 이 서버의 설정이 모두 초기화되었습니다.\n모든 유저의 마지막 참여 시각을 현재 시간으로 초기 등록했습니다.');
+            await interaction.reply({
+                content: `⚠️ ${interaction.guild.name} 서버의 설정이 모두 초기화되었습니다.\n**서버 상태**\n + 모든 유저의 마지막 참여 시각을 현재 시간으로 초기 등록했습니다.`,
+                flags: 64,
+            });
         }
 
-        else if (commandName === '비활성확인') {
-            await interaction.reply('🔍 비활성 유저를 검사 중입니다...');
+        else if (commandName === '확인') {
+            await interaction.reply({
+                content: `🔍 비활성 유저를 검사 중입니다...`,
+                flags: 64,
+            });
             await runScheduler(client, interaction.user.id, true);
-            await interaction.followUp('✅ 완료되었습니다! 관리자에게 알림을 보냈습니다.');
+            await interaction.followUp({
+                content: `완료되었습니다! DM으로 보내드렸어요.`,
+                flags: 64,
+            });
         }
 
-        else if (commandName === '상세로그') {
+        else if (commandName === 'voice_chat_logs') {
             const guild = await interaction.guild.fetch();
             const members = await guild.members.fetch();
-            const logs = await getAllVoiceLogs(guildId); // { user_id, last_joined_at }[]
+            const logs = await getAllVoiceLogs(guildId);
             const logMap = new Map(logs.map(log => [log.user_id, log.last_joined_at]));
 
             const rows = [...members.values()]
@@ -203,13 +241,28 @@ module.exports = {
                 return `- ${name}: ${last}`;
             }).join('\n');
 
-            await interaction.reply({ content: `${header}\n${body}`, ephemeral: true });
+            await interaction.reply({
+                content: `${header}\n${body}`,
+                flags: 64
+            });
         }
 
         else if (commandName === '제외삭제') {
             const user = interaction.options.getUser('유저');
             await removeExcludedUser(guildId, user.id);
-            await interaction.reply(`<@${user.id}> 는 이제 다시 비활성 감지 대상이 됩니다.`);
+            await interaction.reply({
+                content: `<@${user.id}> 이제 다시 비활성 감지 대상이 됩니다.`,
+                flags: 64,
+            });
+        }
+
+        else if (commandName === '알림제거') {
+            const user = interaction.options.getUser('유저');
+            await removeAdmin(guildId, user.id);
+            await interaction.reply({
+                content: `이제 <@${user.id}> 님은 알림을 수신하지 않습니다.`,
+                ephemeral: true,
+            });
         }
     }
 };

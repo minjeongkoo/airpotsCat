@@ -15,14 +15,14 @@ const client = new Client({
 client.once('ready', () => {
   console.log(`Scheduler bot ready as ${client.user.tag}`);
 
-  // 매일 오후 5시 30분에 실행 (서버 시간 기준)
-  cron.schedule('30 17 * * *', () => {
+  // 서버 타임존 기준임
+  cron.schedule('27 13 * * *', () => {
     console.log(`[Scheduler] Running at 17:30`);
     runScheduler(client);
   });
 
   // 봇 시작 시 한 번 테스트 실행 (선택사항)
-  runScheduler(client);
+  // runScheduler(client);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.BOT_TOKEN);

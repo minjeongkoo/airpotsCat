@@ -55,9 +55,9 @@ const initGuildInDatabase = (guild) => {
     }
 
     stmt.finalize();
-    console.log(`✅ ${guild.name} 서버 유저 참여시각 초기화 완료`);
+    console.log(`[Success] ${guild.name} 서버의 유저 참여시각 초기화 완료`);
   }).catch(err => {
-    console.warn(`❌ ${guild.name} 유저 불러오기 실패:`, err.message);
+    console.warn(`[Fail] ${guild.name} 서버의 유저 불러오기 실패:`, err.message);
   });
 };
 
@@ -122,6 +122,20 @@ function removeExcludedUser(guildId, userId) {
       `DELETE FROM excludes WHERE guild_id = ? AND user_id = ?`,
       [guildId, userId],
       (err) => (err ? reject(err) : resolve())
+    );
+  });
+}
+
+// 관리자에서 제거
+function removeAdmin(guildId, userId) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `DELETE FROM admins WHERE guild_id = ? AND user_id = ?`,
+      [guildId, userId],
+      function (err) {
+        if (err) reject(err);
+        else resolve();
+      }
     );
   });
 }
@@ -205,5 +219,6 @@ module.exports = {
   getAllVoiceLogs,
   getAllGuildIds,
   resetGuildData,
-  removeExcludedUser
+  removeExcludedUser,
+  removeAdmin,
 };
