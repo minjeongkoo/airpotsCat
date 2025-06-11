@@ -16,7 +16,7 @@ client.once('ready', () => {
   console.log(`Scheduler bot ready as ${client.user.tag}`);
 
   // 서버 타임존 기준임
-  cron.schedule('5 30 * * *', () => {
+  cron.schedule('22 00 * * *', () => {
     console.log(`[Scheduler] Running at 17:30`);
     runScheduler(client);
   });
