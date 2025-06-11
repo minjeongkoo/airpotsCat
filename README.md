@@ -1,4 +1,6 @@
-# Discord App: 에어팟냥 for REN
+# Discord App: 에어팟냥
+
+![Made for REN](https://img.shields.io/badge/Made%20for-REN-blueviolet?style=plastic)
 
 이 디스코드 봇은 **음성 채널에 일정 기간 동안 참여하지 않은 유저**를 "비활성 유저"로 간주하여, 지정된 관리자에게 **DM으로 자동 알림**을 전송합니다.
 
@@ -133,3 +135,5 @@ airpotsCat/
 - Discord DM: rekenzo#3030
 - Discord Server: https://discord.gg/uAGEF3wy
 - 라이센스: MIT (필요 시 명시)
+
+---
